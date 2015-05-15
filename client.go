@@ -77,8 +77,8 @@ func executeAndParseRequest(req *http.Request, rec interface{}) (err error) {
 		return err
 	}
 
-	if isNotFound(res) {
-		return errors.New("not found")
+	if res.StatusCode >= 400 {
+		return errors.New(res.Status)
 	}
 
 	defer res.Body.Close()
@@ -89,8 +89,4 @@ func executeAndParseRequest(req *http.Request, rec interface{}) (err error) {
 	}
 
 	return nil
-}
-
-func isNotFound(res *http.Response) bool {
-	return res.StatusCode == http.StatusNotFound
 }
