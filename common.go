@@ -17,7 +17,7 @@ type BrokerContext struct {
 	Node        string `json:"node"`
 	Description string `json:"description"`
 	Path        string `json:"path"`
-	Port        Port   `json:"port"`
+	Port        interface{}   `json:"port"`
 	Ignore      bool   `json:"ignore_in_use"`
 }
 
