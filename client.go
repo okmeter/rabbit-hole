@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+    "time"
 )
 
 type Client struct {
@@ -16,6 +17,7 @@ type Client struct {
 	// Password to use.
 	Password string
 	host     string
+	timeout  time.Duration
 }
 
 func NewClient(uri string, username string, password string) (me *Client, err error) {
@@ -32,6 +34,10 @@ func NewClient(uri string, username string, password string) (me *Client, err er
 	}
 
 	return me, nil
+}
+
+func (c *Client) SetTimeout(timeout time.Duration) {
+    c.timeout = timeout
 }
 
 func newGETRequest(client *Client, path string) (*http.Request, error) {
@@ -59,7 +65,7 @@ func newRequestWithBody(client *Client, method string, path string, body []byte)
 }
 
 func executeRequest(client *Client, req *http.Request) (res *http.Response, err error) {
-	httpc := &http.Client{}
+	httpc := &http.Client{Timeout: client.timeout}
 
 	res, err = httpc.Do(req)
 	if err != nil {
