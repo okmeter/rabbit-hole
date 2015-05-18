@@ -14,15 +14,17 @@ type RateDetails struct {
 // RabbitMQ context (Erlang app) running on
 // a node
 type BrokerContext struct {
-	Node        string `json:"node"`
-	Description string `json:"description"`
-	Path        string `json:"path"`
-	Port        interface{}   `json:"port"`
-	Ignore      bool   `json:"ignore_in_use"`
+	Node        string      `json:"node"`
+	Description string      `json:"description"`
+	Path        string      `json:"path"`
+	Port        interface{} `json:"port"`
+	Ignore      bool        `json:"ignore_in_use"`
 }
 
 // Basic published messages statistics
 type MessageStats struct {
 	Publish        int         `json:"publish"`
 	PublishDetails RateDetails `json:"publish_details"`
+	Deliver        int         `json:"deliver"`
+	DeliverDetails RateDetails `json:"deliver_details"`
 }
