@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-    "time"
+	"time"
 )
 
 type Client struct {
@@ -16,6 +17,7 @@ type Client struct {
 	Username string
 	// Password to use.
 	Password string
+	transport *http.Transport
 	host     string
 	timeout  time.Duration
 }
@@ -32,12 +34,15 @@ func NewClient(uri string, username string, password string) (me *Client, err er
 		Username: username,
 		Password: password,
 	}
-
 	return me, nil
 }
 
 func (c *Client) SetTimeout(timeout time.Duration) {
-    c.timeout = timeout
+	c.timeout = timeout
+}
+
+func (c *Client) SetTransport(tr *http.Transport)  {
+	c.transport = tr
 }
 
 func newGETRequest(client *Client, path string) (*http.Request, error) {
@@ -66,33 +71,29 @@ func newRequestWithBody(client *Client, method string, path string, body []byte)
 
 func executeRequest(client *Client, req *http.Request) (res *http.Response, err error) {
 	httpc := &http.Client{Timeout: client.timeout}
-
-	res, err = httpc.Do(req)
-	if err != nil {
-		return nil, err
+	if client.transport != nil {
+		httpc.Transport = client.transport
 	}
-
-	return res, nil
+	return httpc.Do(req)
 }
 
-func executeAndParseRequest(req *http.Request, rec interface{}) (err error) {
-	client := &http.Client{}
-
-	res, err := client.Do(req)
+func executeAndParseRequest(client *Client, req *http.Request, rec interface{}) (err error) {
+	res, err := executeRequest(client, req)
 	if err != nil {
 		return err
 	}
-
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
 	if res.StatusCode >= 400 {
 		return errors.New(res.Status)
 	}
 
-	defer res.Body.Close()
-
-	err = json.NewDecoder(res.Body).Decode(&rec)
+	err = json.Unmarshal(body, &rec)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
